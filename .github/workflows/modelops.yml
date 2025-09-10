@@ -1,0 +1,68 @@
+name: Modelops deploy
+
+on:
+  # Lo lanzaremos vía repository_dispatch desde otro repo/script
+  repository_dispatch:
+    types: [ml_ci_cd]
+
+jobs:
+  ml_ci_cd:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show Python version
+        run: python --version
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Crea carpeta data y descarga el dataset si te pasan la URL en el payload
+      - name: Prepare data folder
+        run: mkdir -p data
+
+      - name: Download dataset (bank.csv)
+        if: ${{ github.event.client_payload.dataseturl != '' }}
+        run: |
+          wget -O data/bank.csv "${{ github.event.client_payload.dataseturl }}"
+          echo "Downloaded dataset to data/bank.csv"
+
+      - name: List files
+        run: ls -la && ls -la data || true
+
+      - name: Train model
+        run: python model_train.py
+
+      - name: List model artifacts
+        run: ls -la model
+
+      - name: Docker build
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }} \
+            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:latest \
+            .
+
+      - name: Show images
+        run: docker images | head -n 20
+
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+
+      - name: Docker push (tagged)
+        run: |
+          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }}
+          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:latest
