@@ -50,7 +50,7 @@ jobs:
         run: |
           docker build \
             -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }} \
-            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:100 \
+            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:50 \
             .
 
       - name: Show images
@@ -65,4 +65,4 @@ jobs:
       - name: Docker push (tagged)
         run: |
           docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }}
-          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:100
+          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:50
