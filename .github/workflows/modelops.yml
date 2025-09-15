@@ -50,7 +50,7 @@ jobs:
         run: |
           docker build \
             -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }} \
-            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:latest \
+            -t ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:100 \
             .
 
       - name: Show images
