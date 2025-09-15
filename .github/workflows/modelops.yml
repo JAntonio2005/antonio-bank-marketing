@@ -65,4 +65,4 @@ jobs:
       - name: Docker push (tagged)
         run: |
           docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:${{ github.event.client_payload.sha }}
-          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:latest
+          docker push ${{ secrets.DOCKER_USER }}/${{ secrets.MODEL_NAME }}:100
